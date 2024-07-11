@@ -1,4 +1,4 @@
-use std::str;
+use std::{cmp::min, str};
 
 use cosmwasm_std::{Addr, Decimal, Env, Event, Response, Storage, Uint128};
 use mars_interest_rate::{
@@ -111,11 +111,12 @@ pub fn update_interest_rates(
     let total_debt =
         get_underlying_debt_amount(market.debt_total_scaled, market, current_timestamp)?;
 
-    let current_utilization_rate = if !total_collateral.is_zero() {
+    let mut current_utilization_rate = if !total_collateral.is_zero() {
         Decimal::from_ratio(total_debt, total_collateral)
     } else {
         Decimal::zero()
     };
+    current_utilization_rate = min(Decimal::one(), current_utilization_rate);
 
     market.update_interest_rates(current_utilization_rate)?;
 
